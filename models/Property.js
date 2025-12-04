@@ -11,11 +11,12 @@ const propertySchema = mongoose.Schema(
     }, // نوع العقار
     transactionType: { 
       type: String, 
-      enum: ['sale', 'rent'], 
+      enum: ['للبيع', 'للايجار'], 
       required: true 
     }, // بيع أو إيجار
-    price: { type: Number, required: true }, // السعر
-    advancePayment: { type: Number }, // المقدم
+    price: { type: Number, required: true }, // السعر رقم واحد
+ 
+      advancePayment: { type: Number }, // المقدم
     location: {
       country: { type: String, required: true }, // الدولة
       city: { type: String, required: true }, // المدينة
@@ -45,8 +46,8 @@ const propertySchema = mongoose.Schema(
     featured: { type: Boolean, default: false }, // مميز أو استثنائي
     status: { 
       type: String, 
-      enum: ['ready', 'under_construction'], 
-      default: 'ready' 
+      enum: ['مكتمل', 'قيد الانشاء'], 
+      default: 'مكتمل' 
     }, // جاهز أو تحت الانشاء
     ownership: { 
       type: String, 

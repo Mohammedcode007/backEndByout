@@ -73,9 +73,79 @@ const getProperty = async (req, res, next) => {
 };
 
 // جلب كل العقارات مع فلترة بسيطة
+
+
+
+// const getAllProperties = async (req, res, next) => {
+//   try {
+//     const { 
+//       type, 
+//       transactionType, 
+//       city, 
+//       featured, 
+//       status, 
+//       bedrooms, 
+//       bathrooms,
+//       'price[from]': priceFrom, 
+//       'price[to]': priceTo 
+//     } = req.query;
+
+//     const filter = {};
+//     if (type) filter.type = type;
+//     if (transactionType) filter.transactionType = transactionType;
+//     if (city) filter['location.city'] = city;
+//     if (featured) filter.featured = featured === 'true';
+//     if (status) filter.status = status;
+
+//     // فلترة عدد الغرف
+//     if (bedrooms) {
+//       if (typeof bedrooms === 'string' && bedrooms.endsWith('+')) {
+//         const minRooms = Number(bedrooms.replace('+', ''));
+//         filter.bedrooms = { $gte: minRooms };
+//       } else {
+//         filter.bedrooms = Number(bedrooms);
+//       }
+//     }
+
+//     // فلترة عدد الحمامات
+//     if (bathrooms) {
+//       if (typeof bathrooms === 'string' && bathrooms.endsWith('+')) {
+//         const minBaths = Number(bathrooms.replace('+', ''));
+//         filter.bathrooms = { $gte: minBaths };
+//       } else {
+//         filter.bathrooms = Number(bathrooms);
+//       }
+//     }
+
+//     // فلترة السعر من–إلى
+//     if (priceFrom || priceTo) {
+//       filter.price = {};
+//       if (priceFrom) filter.price.$gte = Number(priceFrom);
+//       if (priceTo) filter.price.$lte = Number(priceTo);
+//     }
+
+//     const properties = await Property.find(filter).populate('owner', 'name email phone');
+//     res.json(properties);
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
 const getAllProperties = async (req, res, next) => {
   try {
-    const { type, transactionType, city, featured, status } = req.query;
+    const { 
+      type, 
+      transactionType, 
+      city, 
+      featured, 
+      status, 
+      bedrooms, 
+      bathrooms,
+      'price[from]': priceFrom, 
+      'price[to]': priceTo,
+      'area[from]': areaFrom,
+      'area[to]': areaTo
+    } = req.query;
 
     const filter = {};
     if (type) filter.type = type;
@@ -83,6 +153,40 @@ const getAllProperties = async (req, res, next) => {
     if (city) filter['location.city'] = city;
     if (featured) filter.featured = featured === 'true';
     if (status) filter.status = status;
+
+    // فلترة عدد الغرف
+    if (bedrooms) {
+      if (typeof bedrooms === 'string' && bedrooms.endsWith('+')) {
+        const minRooms = Number(bedrooms.replace('+', ''));
+        filter.bedrooms = { $gte: minRooms };
+      } else {
+        filter.bedrooms = Number(bedrooms);
+      }
+    }
+
+    // فلترة عدد الحمامات
+    if (bathrooms) {
+      if (typeof bathrooms === 'string' && bathrooms.endsWith('+')) {
+        const minBaths = Number(bathrooms.replace('+', ''));
+        filter.bathrooms = { $gte: minBaths };
+      } else {
+        filter.bathrooms = Number(bathrooms);
+      }
+    }
+
+    // فلترة السعر من–إلى
+    if (priceFrom || priceTo) {
+      filter.price = {};
+      if (priceFrom) filter.price.$gte = Number(priceFrom);
+      if (priceTo) filter.price.$lte = Number(priceTo);
+    }
+
+    // فلترة المساحة من–إلى
+    if (areaFrom || areaTo) {
+      filter.area = {};
+      if (areaFrom) filter.area.$gte = Number(areaFrom);
+      if (areaTo) filter.area.$lte = Number(areaTo);
+    }
 
     const properties = await Property.find(filter).populate('owner', 'name email phone');
     res.json(properties);
