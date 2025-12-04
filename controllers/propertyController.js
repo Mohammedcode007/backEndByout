@@ -76,6 +76,106 @@ const getProperty = async (req, res, next) => {
 
 
 
+
+const getAllProperties = async (req, res, next) => {
+  try {
+    const { 
+      type, 
+      transactionType, 
+      country,
+      city, 
+      district,
+      lat, 
+      lng, 
+      radiusKm, // نصف القطر بالكيلومتر للبحث الجغرافي
+      featured, 
+      status, 
+      bedrooms, 
+      bathrooms,
+      'price[from]': priceFrom, 
+      'price[to]': priceTo,
+      'area[from]': areaFrom,
+      'area[to]': areaTo,
+      deliveryMonth,
+      deliveryYear,
+      installmentMonths
+    } = req.query;
+
+    const filter = {};
+
+    // فلاتر أساسية
+    if (type) filter.type = type;
+    if (transactionType) filter.transactionType = transactionType;
+    if (country && country.trim() !== '') filter['location.country'] = country.trim();
+if (city && city.trim() !== '') filter['location.city'] = city.trim();
+if (district && district.trim() !== '') filter['location.district'] = district.trim();
+
+    if (featured) filter.featured = featured === 'true';
+    if (status) filter.status = status;
+
+    // فلترة عدد الغرف
+    if (bedrooms) {
+      if (typeof bedrooms === 'string' && bedrooms.endsWith('+')) {
+        filter.bedrooms = { $gte: Number(bedrooms.replace('+', '')) };
+      } else filter.bedrooms = Number(bedrooms);
+    }
+
+    // فلترة عدد الحمامات
+    if (bathrooms) {
+      if (typeof bathrooms === 'string' && bathrooms.endsWith('+')) {
+        filter.bathrooms = { $gte: Number(bathrooms.replace('+', '')) };
+      } else filter.bathrooms = Number(bathrooms);
+    }
+
+    // فلترة السعر
+    if (priceFrom || priceTo) {
+      filter.price = {};
+      if (priceFrom) filter.price.$gte = Number(priceFrom);
+      if (priceTo) filter.price.$lte = Number(priceTo);
+    }
+
+    // فلترة المساحة
+    if (areaFrom || areaTo) {
+      filter.area = {};
+      if (areaFrom) filter.area.$gte = Number(areaFrom);
+      if (areaTo) filter.area.$lte = Number(areaTo);
+    }
+
+    // فلترة تاريخ التسليم
+    if (deliveryMonth && deliveryYear) {
+      const month = Number(deliveryMonth) - 1;
+      const year = Number(deliveryYear);
+      const startDate = new Date(year, month, 1);
+      const endDate = new Date(year, month + 1, 0);
+      filter.deliveryDate = { $gte: startDate, $lte: endDate };
+    }
+
+    // فلترة التقسيط
+    if (installmentMonths && Number(installmentMonths) > 0) {
+      filter.installmentMonths = Number(installmentMonths);
+    }
+
+    // فلترة حسب الإحداثيات (بحث قرب نقطة)
+    if (lat && lng && radiusKm) {
+      const latNum = Number(lat);
+      const lngNum = Number(lng);
+      const radiusMeters = Number(radiusKm) * 1000;
+      filter['location.coordinates'] = {
+        $geoWithin: {
+          $centerSphere: [[lngNum, latNum], radiusMeters / 6378137] // نصف قطر الأرض بالراديان
+        }
+      };
+    }
+
+    const properties = await Property.find(filter).populate('owner', 'name email phone');
+    res.json(properties);
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+
 // const getAllProperties = async (req, res, next) => {
 //   try {
 //     const { 
@@ -87,7 +187,12 @@ const getProperty = async (req, res, next) => {
 //       bedrooms, 
 //       bathrooms,
 //       'price[from]': priceFrom, 
-//       'price[to]': priceTo 
+//       'price[to]': priceTo,
+//       'area[from]': areaFrom,
+//       'area[to]': areaTo,
+//       deliveryMonth,
+//       deliveryYear,
+//       installmentMonths
 //     } = req.query;
 
 //     const filter = {};
@@ -124,76 +229,39 @@ const getProperty = async (req, res, next) => {
 //       if (priceTo) filter.price.$lte = Number(priceTo);
 //     }
 
+//     // فلترة المساحة من–إلى
+//     if (areaFrom || areaTo) {
+//       filter.area = {};
+//       if (areaFrom) filter.area.$gte = Number(areaFrom);
+//       if (areaTo) filter.area.$lte = Number(areaTo);
+//     }
+
+//     // فلترة تاريخ التسليم حسب الشهر والسنة فقط
+//     if (deliveryMonth && deliveryYear) {
+//       const month = Number(deliveryMonth) - 1; 
+//       const year = Number(deliveryYear);
+
+//       const startDate = new Date(year, month, 1);
+//       const endDate = new Date(year, month + 1, 0);
+
+//       filter.deliveryDate = { 
+//         $gte: startDate, 
+//         $lte: endDate 
+//       };
+//     }
+
+//     // فلترة التقسيط
+//     if (installmentMonths && Number(installmentMonths) > 0) {
+//       filter.installmentMonths = Number(installmentMonths);
+//     }
+//     // إذا كانت 0 أو غير موجودة، لا نضيف أي شرط على التقسيط (يعني يرجع الكل)
+
 //     const properties = await Property.find(filter).populate('owner', 'name email phone');
 //     res.json(properties);
 //   } catch (err) {
 //     next(err);
 //   }
 // };
-
-const getAllProperties = async (req, res, next) => {
-  try {
-    const { 
-      type, 
-      transactionType, 
-      city, 
-      featured, 
-      status, 
-      bedrooms, 
-      bathrooms,
-      'price[from]': priceFrom, 
-      'price[to]': priceTo,
-      'area[from]': areaFrom,
-      'area[to]': areaTo
-    } = req.query;
-
-    const filter = {};
-    if (type) filter.type = type;
-    if (transactionType) filter.transactionType = transactionType;
-    if (city) filter['location.city'] = city;
-    if (featured) filter.featured = featured === 'true';
-    if (status) filter.status = status;
-
-    // فلترة عدد الغرف
-    if (bedrooms) {
-      if (typeof bedrooms === 'string' && bedrooms.endsWith('+')) {
-        const minRooms = Number(bedrooms.replace('+', ''));
-        filter.bedrooms = { $gte: minRooms };
-      } else {
-        filter.bedrooms = Number(bedrooms);
-      }
-    }
-
-    // فلترة عدد الحمامات
-    if (bathrooms) {
-      if (typeof bathrooms === 'string' && bathrooms.endsWith('+')) {
-        const minBaths = Number(bathrooms.replace('+', ''));
-        filter.bathrooms = { $gte: minBaths };
-      } else {
-        filter.bathrooms = Number(bathrooms);
-      }
-    }
-
-    // فلترة السعر من–إلى
-    if (priceFrom || priceTo) {
-      filter.price = {};
-      if (priceFrom) filter.price.$gte = Number(priceFrom);
-      if (priceTo) filter.price.$lte = Number(priceTo);
-    }
-
-    // فلترة المساحة من–إلى
-    if (areaFrom || areaTo) {
-      filter.area = {};
-      if (areaFrom) filter.area.$gte = Number(areaFrom);
-      if (areaTo) filter.area.$lte = Number(areaTo);
-    }
-
-    const properties = await Property.find(filter).populate('owner', 'name email phone');
-    res.json(properties);
-  } catch (err) {
-    next(err);
-  }
-};
 
 module.exports = {
   addProperty,

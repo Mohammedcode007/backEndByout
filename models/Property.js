@@ -9,6 +9,8 @@ const propertySchema = mongoose.Schema(
       enum: ['apartment', 'villa', 'room', 'student_housing'], 
       required: true 
     }, // نوع العقار
+        installmentMonths: { type: Number, default: 0 }, // عدد أشهر التقسيط، 0 يعني لا يوجد تقسيط
+
     transactionType: { 
       type: String, 
       enum: ['للبيع', 'للايجار'], 
@@ -17,11 +19,11 @@ const propertySchema = mongoose.Schema(
     price: { type: Number, required: true }, // السعر رقم واحد
  
       advancePayment: { type: Number }, // المقدم
-    location: {
-      country: { type: String, required: true }, // الدولة
+ location: {
+      country: { type: String, required: true, default: 'مصر' }, // الدولة ثابتة
       city: { type: String, required: true }, // المدينة
+      district: { type: String, required: true }, // المركز / الحي
       street: { type: String }, // الشارع
-      neighborhood: { type: String }, // الحي
       postalCode: { type: String }, // الرمز البريدي
       address: { type: String, required: true }, // العنوان كتابيًا
       coordinates: { // خطوط الطول والعرض
