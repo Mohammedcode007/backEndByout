@@ -8,6 +8,7 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const propertyRoutes = require('./routes/propertyRoutes');
 const { errorHandler } = require('./middlewares/errorMiddleware');
+const favoriteRoutes = require('./routes/favoriteRoutes');
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use(morgan('dev'));
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/properties', propertyRoutes);
+app.use('/api/favorites', favoriteRoutes);
 
 // Error middleware
 app.use(errorHandler);

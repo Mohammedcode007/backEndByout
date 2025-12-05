@@ -7,6 +7,9 @@ const userSchema = mongoose.Schema(
     email: { type: String, required: true, unique: true },
     phone: { type: String, required: true, unique: true }, // رقم الهاتف
     password: { type: String, required: true },
+    favorites: [
+      { type: mongoose.Schema.Types.ObjectId, ref: 'Property' }
+    ]
   },
   { timestamps: true }
 );
