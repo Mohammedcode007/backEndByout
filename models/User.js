@@ -7,6 +7,8 @@ const userSchema = mongoose.Schema(
     email: { type: String, required: true, unique: true },
     phone: { type: String, required: true, unique: true }, // رقم الهاتف
     password: { type: String, required: true },
+    role: { type: String, enum: ['user', 'admin', 'owner'], default: 'user' },
+
     favorites: [
       { type: mongoose.Schema.Types.ObjectId, ref: 'Property' }
     ]
