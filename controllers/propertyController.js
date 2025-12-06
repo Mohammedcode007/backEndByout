@@ -38,6 +38,7 @@ const updateProperty = async (req, res, next) => {
 };
 
 // حذف عقار
+// حذف عقار
 const deleteProperty = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -50,12 +51,15 @@ const deleteProperty = async (req, res, next) => {
       return res.status(403).json({ message: "Not authorized to delete this property" });
     }
 
-    await property.remove();
+    await Property.findByIdAndDelete(id); // ✅ استخدام هذه الطريقة أفضل من remove()
+    
     res.json({ message: "Property deleted successfully" });
   } catch (err) {
+    console.error(err); // طباعة الخطأ للتصحيح
     next(err);
   }
 };
+
 
 // جلب عقار واحد
 const getProperty = async (req, res, next) => {
@@ -174,94 +178,6 @@ if (district && district.trim() !== '') filter['location.district'] = district.t
   }
 };
 
-
-
-// const getAllProperties = async (req, res, next) => {
-//   try {
-//     const { 
-//       type, 
-//       transactionType, 
-//       city, 
-//       featured, 
-//       status, 
-//       bedrooms, 
-//       bathrooms,
-//       'price[from]': priceFrom, 
-//       'price[to]': priceTo,
-//       'area[from]': areaFrom,
-//       'area[to]': areaTo,
-//       deliveryMonth,
-//       deliveryYear,
-//       installmentMonths
-//     } = req.query;
-
-//     const filter = {};
-//     if (type) filter.type = type;
-//     if (transactionType) filter.transactionType = transactionType;
-//     if (city) filter['location.city'] = city;
-//     if (featured) filter.featured = featured === 'true';
-//     if (status) filter.status = status;
-
-//     // فلترة عدد الغرف
-//     if (bedrooms) {
-//       if (typeof bedrooms === 'string' && bedrooms.endsWith('+')) {
-//         const minRooms = Number(bedrooms.replace('+', ''));
-//         filter.bedrooms = { $gte: minRooms };
-//       } else {
-//         filter.bedrooms = Number(bedrooms);
-//       }
-//     }
-
-//     // فلترة عدد الحمامات
-//     if (bathrooms) {
-//       if (typeof bathrooms === 'string' && bathrooms.endsWith('+')) {
-//         const minBaths = Number(bathrooms.replace('+', ''));
-//         filter.bathrooms = { $gte: minBaths };
-//       } else {
-//         filter.bathrooms = Number(bathrooms);
-//       }
-//     }
-
-//     // فلترة السعر من–إلى
-//     if (priceFrom || priceTo) {
-//       filter.price = {};
-//       if (priceFrom) filter.price.$gte = Number(priceFrom);
-//       if (priceTo) filter.price.$lte = Number(priceTo);
-//     }
-
-//     // فلترة المساحة من–إلى
-//     if (areaFrom || areaTo) {
-//       filter.area = {};
-//       if (areaFrom) filter.area.$gte = Number(areaFrom);
-//       if (areaTo) filter.area.$lte = Number(areaTo);
-//     }
-
-//     // فلترة تاريخ التسليم حسب الشهر والسنة فقط
-//     if (deliveryMonth && deliveryYear) {
-//       const month = Number(deliveryMonth) - 1; 
-//       const year = Number(deliveryYear);
-
-//       const startDate = new Date(year, month, 1);
-//       const endDate = new Date(year, month + 1, 0);
-
-//       filter.deliveryDate = { 
-//         $gte: startDate, 
-//         $lte: endDate 
-//       };
-//     }
-
-//     // فلترة التقسيط
-//     if (installmentMonths && Number(installmentMonths) > 0) {
-//       filter.installmentMonths = Number(installmentMonths);
-//     }
-//     // إذا كانت 0 أو غير موجودة، لا نضيف أي شرط على التقسيط (يعني يرجع الكل)
-
-//     const properties = await Property.find(filter).populate('owner', 'name email phone');
-//     res.json(properties);
-//   } catch (err) {
-//     next(err);
-//   }
-// };
 
 module.exports = {
   addProperty,
